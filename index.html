@@ -48,7 +48,7 @@
  $('mx-airlines').innerHTML=codes.map(c=>`<label><input type="checkbox" data-air="${c}" checked>${names[c]||c}</label>`).join('');
  const calendar={han:['2026-12-04','2026-12-12'],winter:['2026-12-21','2027-01-08']};
  function inBand(d,key){return d>=calendar[key][0]&&d<=calendar[key][1]}
- function axisDate(d,scope){const band=inBand(d,'han')?'han':inBand(d,'winter')?'winter':'';return `<th scope="${scope}" class="${band}">${label(d)}${band?`<span class="date-tag">${band==='han'?'Hanukkah':'Winter break'}</span>`:''}</th>`}
+ function axisDate(d,scope){const band=inBand(d,'han')?'han':inBand(d,'winter')?'winter':'';return `<th scope="${scope}" class="${band}">${new Date(d+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'})}${band?`<span class="date-tag">${band==='han'?'Hanukkah':'Winter break'}</span>`:''}</th>`}
  function stay(b,o,r){
   const estimated=b.type==='delta',arrival=estimated?next(o,1):b.a.arrive.slice(0,10),departure=estimated?r:b.b.depart.slice(0,10),fridays=[];
   // Captured itinerary timestamps preserve the airport's local clock, including the legacy Z suffix.
