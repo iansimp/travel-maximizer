@@ -34,6 +34,22 @@
 #tm-matrix select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px}
 @media(max-width:1000px){#tm-matrix .matrix-layout{grid-template-columns:1fr}#tm-matrix .matrix-layout .detail{position:static;max-height:none}#tm-matrix .detail .legs{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){#tm-matrix .detail .legs{grid-template-columns:1fr}}
+
+#tm-matrix .map-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+#tm-matrix .map-tools label{display:flex;align-items:center;gap:7px;font-size:12px}
+#tm-matrix .map-tools input{width:110px}
+#tm-matrix table{width:max-content;min-width:100%}
+#tm-matrix td{padding:var(--map-gap,3px)}
+#tm-matrix td button{min-width:var(--map-width,63px);height:var(--map-height,58px);min-height:var(--map-height,58px);font-size:var(--map-font,14px);padding:4px 3px var(--map-bottom,19px)}
+#tm-matrix td.empty{height:calc(var(--map-height,58px) + 7px);min-width:var(--map-width,63px)}
+#tm-matrix th{font-size:var(--map-axis,12px);padding:var(--map-th-pad,9px) 5px}
+#tm-matrix .date-tag{font-size:var(--map-tag,10px)}
+#tm-matrix td button.heat .shabbat-tag{font-size:var(--map-tag,10px);bottom:3px}
+#tm-matrix .map-expanded{position:fixed;inset:0;z-index:1000;background:var(--bg);padding:16px;overflow:auto;grid-template-columns:minmax(0,1fr) 320px}
+#tm-matrix .map-expanded .table-wrap{max-height:calc(100dvh - 155px)}
+#tm-matrix .map-expanded .detail{max-height:calc(100dvh - 32px)}
+#tm-matrix:fullscreen{max-width:none;width:100%;height:100%;overflow:auto}
+@media(max-width:900px){#tm-matrix .map-expanded{grid-template-columns:1fr}#tm-matrix .map-expanded .detail{position:static;max-height:none}}
 </style>
 <header class="header"><div><h1>Travel maximizer</h1><p class="sub">Mix & match date matrix · LAX / SFO / LAS ↔ Tel Aviv</p></div><div><span class="badge">Search window Dec 1–Jan 16 · sources captured Oct 5–7, 2026</span> <a href="old/">Old dashboard</a></div></header>
 <main class="body">
@@ -45,7 +61,7 @@
 </div>
 <div class="filters"><div class="filter-top"><details id="mx-filter"><summary class="cursor-interaction">Airlines: <span id="mx-air-status">All airlines</span></summary><div class="checks" id="mx-airlines"></div></details><div><button type="button" id="mx-all" class="cursor-interaction">All airlines</button> <button type="button" id="mx-none" class="cursor-interaction">Clear</button> <button type="button" id="mx-delta" class="cursor-interaction">Delta only</button></div></div></div>
 <div class="options"><label>Home airport <select id="mx-home"><option value="all">All three cities</option><option value="LAX">LAX</option><option value="SFO">SFO</option><option value="LAS">LAS</option></select></label><label><input id="mx-discount" type="checkbox">Estimate TakeOff 15 on unverified Delta quotes</label><label><input id="mx-shabbat" type="checkbox" checked>Highlight 3- and 4-Shabbat stays</label><label><input id="mx-unknown" type="checkbox">Include leads with unknown seat counts</label><label title="Require matching flight-number carriers both directions; Delta calendar prices remain complete round trips"><input id="mx-same-airline" type="checkbox">Same airline both directions</label><label><input id="mx-airport" type="checkbox">Use the same home airport both ways</label><label><input id="mx-rt" type="checkbox" checked>Include Delta round-trip quotes</label></div>
-<p class="sub" id="mx-delta-coverage"></p><div class="matrix-layout"><div class="matrix-main"><div class="axis"><span class="sub">↓ Departure date &nbsp; · &nbsp; Return date →</span><span class="sub" id="mx-size" aria-live="polite"></span></div>
+<p class="sub" id="mx-delta-coverage"></p><div class="matrix-layout"><div class="matrix-main"><div class="map-tools"><button type="button" id="mx-expand" aria-expanded="false">Expand map</button><label for="mx-cell-size">Cell size <input id="mx-cell-size" type="range" min="60" max="110" value="100" step="5"><output id="mx-cell-size-value" for="mx-cell-size">100%</output></label><a href="https://iansimp.github.io/travel-maximizer/" target="_blank" rel="noopener">Open in new tab ↗</a><span class="sub" id="mx-view-status" aria-live="polite"></span></div><div class="axis"><span class="sub">↓ Departure date &nbsp; · &nbsp; Return date →</span><span class="sub" id="mx-size" aria-live="polite"></span></div>
 <div class="table-wrap"><table aria-label="Cheapest combined award points by departure and return date"><thead id="mx-head"></thead><tbody id="mx-grid"></tbody></table></div>
 <div class="heat-legend" id="mx-heat-legend" aria-live="polite"></div>
 <div class="legend"><span>† Delta round-trip quote wins</span><span>? Seat count unknown</span><span>— No qualifying captured quote</span><span>* Delta Shabbats use estimated timing</span></div>
@@ -129,8 +145,34 @@
   else html+=`<p>Delta Main calendar search · ${b.rt.home} ↔ TLV · 3 travelers</p><p>${format(b.p)} miles + USD ${b.rt.tax.toFixed(2)} per person · USD ${(b.rt.tax*3).toFixed(2)} for 3</p><p class="sub">${b.rt.mode==='account'?'Account price from your signed-in screenshot; TakeOff 15 already reflected. Screenshot received '+b.rt.account_received.slice(0,10)+'.':b.rt.mode==='estimate'?'Unverified 15% estimate from '+format(b.rt.base)+' logged-out miles; rounded down to 100 miles. Eligible operating flights must be confirmed.':'Logged-out calendar price; no discount deducted. TakeOff 15 eligibility is unverified.'} Live grid checked ${b.rt.checked.slice(0,16).replace('T',' ')} UTC. Flight times, connection counts and final booking price require itinerary confirmation.</p>`;
   html+='<div class="alternatives"><strong>Compare both ways to book these dates</strong>';if(c.pair)html+=`<div class="alt">Mix & match: ${format(c.pair.p)} points + ${totals(c.pair.a,c.pair.b)} per person · ${c.pair.a.program} + ${c.pair.b.program}${c.pair.unknown?' · seat count unknown':''}</div>`;for(const t of c.deltaQuotes||[])html+=`<div class="alt">Delta ${t.home} round trip: ${format(t.p)} miles + USD ${t.tax.toFixed(2)} per person · ${t.mode==='account'?'your account screenshot':t.mode==='estimate'?'unverified TakeOff 15 estimate':'logged-out calendar price'}</div>`;html+='</div>';$('mx-detail').innerHTML=html;
  }
- root.addEventListener('input',e=>{if(e.target.dataset.air){e.target.checked?chosen.add(e.target.dataset.air):chosen.delete(e.target.dataset.air)}draw()});
+ root.addEventListener('input',e=>{if(e.target.id==='mx-cell-size')return;if(e.target.dataset.air){e.target.checked?chosen.add(e.target.dataset.air):chosen.delete(e.target.dataset.air)}draw()});
  root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.o){selection={o:b.dataset.o,r:b.dataset.r};draw()}if(['mx-all','mx-none','mx-delta'].includes(b.id)){chosen=new Set(b.id==='mx-all'?codes:b.id==='mx-delta'?['DL']:[]);for(const x of root.querySelectorAll('[data-air]'))x.checked=chosen.has(x.dataset.air);draw()}});
+
+ const mapLayout=root.querySelector('.matrix-layout');
+ function setMapSize(){
+  const n=Number($('mx-cell-size').value)/100;
+  for(const [key,value] of Object.entries({width:Math.round(63*n),height:Math.round(58*n),font:Math.max(11,14*n),axis:Math.max(10,12*n),tag:Math.max(9,10*n),gap:Math.max(1,3*n),bottom:Math.max(15,19*n),'th-pad':Math.max(4,9*n)}))root.style.setProperty('--map-'+key,value+'px');
+  $('mx-cell-size-value').textContent=Math.round(n*100)+'%';
+ }
+ function setExpanded(on){
+  mapLayout.classList.toggle('map-expanded',on);
+  $('mx-expand').textContent=on?'Restore map':'Expand map';
+  $('mx-expand').setAttribute('aria-expanded',String(on));
+  if(!on){$('mx-view-status').textContent='';$('mx-expand').focus();}
+ }
+ $('mx-cell-size').addEventListener('input',setMapSize);
+ $('mx-expand').addEventListener('click',async()=>{
+  if(mapLayout.classList.contains('map-expanded')){
+   if(document.fullscreenElement===root)await document.exitFullscreen().catch(()=>{});
+   setExpanded(false);return;
+  }
+  setExpanded(true);
+  try{if(!root.requestFullscreen)throw Error('Fullscreen unavailable');await root.requestFullscreen();}
+  catch{$('mx-view-status').textContent='Expanded within this view. Use “Open in new tab” for more space.';}
+ });
+ document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement!==root)setExpanded(false);});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mapLayout.classList.contains('map-expanded')){setExpanded(false);if(document.fullscreenElement===root)document.exitFullscreen().catch(()=>{});}});
+ setMapSize();
  draw();
 })();
 </script>
