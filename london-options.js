@@ -26,7 +26,7 @@
    e.preventDefault();
    const q={id:String(Date.now()),d:$('mx-ba-direction').value,date:$('mx-ba-date').value,p:Number($('mx-ba-avios').value),tax:Number($('mx-ba-cash').value),currency:$('mx-ba-currency').value,s:Number($('mx-ba-seats').value),departTime:$('mx-ba-time').value,arrival:$('mx-ba-arrival').value,checked:new Date().toISOString()};
    if(!valid(q)||!$('mx-ba-cash').value){$('mx-ba-message').textContent='Enter a date in the search window, Avios, cash charges and seat count.';return;}
-   if(q.departTime&&q.arrival){const hours=(clock(q.arrival)-clock(q.date+'T'+q.departTime))/3600000+(q.d==='out'?2:-2);if(hours<=0||hours>12){$('mx-ba-message').textContent='Check the flight times: use London local time for London and Israel local time for TLV.';return;}}
+   if(q.departTime&&q.arrival){const hours=(clock(q.arrival)-clock(q.date+'T'+q.departTime))/3600000+(q.d==='out'?-2:2);if(hours<=0||hours>12){$('mx-ba-message').textContent='Check the flight times: use London local time for London and Israel local time for TLV.';return;}}
    quotes=quotes.filter(x=>!(x.d===q.d&&x.date===q.date&&x.departTime===q.departTime));quotes.push(q);persist();render();$('mx-london').checked=true;redraw();
   });
   $('mx-ba-quotes').addEventListener('click',e=>{const b=e.target.closest('[data-ba-remove]');if(!b)return;quotes=quotes.filter(q=>q.id!==b.dataset.baRemove);persist();render();redraw();});
