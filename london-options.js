@@ -16,7 +16,7 @@
   else {const a=(before||q.date).slice(0,10),b=(after||q.date).slice(0,10),days=(clock(b+'T00:00:00')-clock(a+'T00:00:00'))/86400000;if(days<0||days>1)return null;}
   const ba={d:q.d,date:q.date,c:['BA'],home:'LAX',p:q.p,tax:q.tax,currency:q.currency,s:q.s,depart:baDepart||q.date+'T00:00:00',arrive:q.arrival||q.date+'T23:59:00',route:q.d==='out'?'LHR → TLV':'TLV → LHR',flight:q.flight||'BA · date-level quote',program:'British Airways Club',source:q.source||'Your BA quote',checked:q.checked||new Date().toISOString(),timeUnknown:q.d==='out'?!q.arrival:!q.departTime};
   const parts=q.d==='out'?[long,ba]:[ba,long];
-  return {d:q.d,date:parts[0].date,c:[...new Set(parts.flatMap(p=>p.c))],home:'LAX',p:long.p+q.p,tax:0,currency:'USD',taxes:sumTax(parts),s:long.s===null?null:Math.min(long.s||0,q.s),depart:parts[0].depart,arrive:parts[1].arrive,route:q.d==='out'?'LAX → LHR → TLV':'TLV → LHR → LAX',flight:parts.map(p=>p.flight).join(' / '),program:parts.map(p=>p.program).join(' + '),source:'Seats.aero + your BA quote',checked:long.checked,viaLondon:true,parts,connectionHours:hours,provisional:provisional||!!q.airportUnverified,timeUnknown:ba.timeUnknown,cashPlaceholder:!!q.cashPlaceholder,airportUnverified:!!q.airportUnverified};
+  return {d:q.d,date:parts[0].date,c:[...new Set(parts.flatMap(p=>p.c))],home:long.home,p:long.p+q.p,tax:0,currency:'USD',taxes:sumTax(parts),s:long.s===null?null:Math.min(long.s||0,q.s),depart:parts[0].depart,arrive:parts[1].arrive,route:q.d==='out'?long.home+' → LHR → TLV':'TLV → LHR → '+long.home,flight:parts.map(p=>p.flight).join(' / '),program:parts.map(p=>p.program).join(' + '),source:'Seats.aero + your BA quote',checked:[long.checked,q.checked||new Date().toISOString()].sort()[0],viaLondon:true,parts,connectionHours:hours,provisional:provisional||!!q.airportUnverified,timeUnknown:ba.timeUnknown,cashPlaceholder:!!q.cashPlaceholder,airportUnverified:!!q.airportUnverified};
  }
  function init(root,redraw){
   const $=id=>root.querySelector('#'+id);let quotes=[],excluded=[];
@@ -36,7 +36,8 @@
   });
   $('mx-ba-quotes').addEventListener('click',e=>{const b=e.target.closest('[data-ba-remove]');if(!b)return;const id=b.dataset.baRemove;if(captured.some(q=>q.id===id)){excluded.push(id);try{localStorage.setItem(excludedKey,JSON.stringify(excluded));}catch{}}quotes=quotes.filter(q=>q.id!==id);persist();render();redraw();});
   render();
-  return {getLeads(){if(!$('mx-london').checked)return [];const result=[];const hours=Number($('mx-london-gap').value)||4;for(const long of window.tmLondonFlightLeads||[])for(const q of allQuotes()){const f=combine(long,q,hours);if(f)result.push(f);}return result;},status(){return `${(window.tmLondonFlightLeads||[]).length.toLocaleString()} nonstop LAX ↔ Heathrow leads · ${allQuotes().length} BA quotes available (${quotes.length} entered here) · captured BA cash charges use $0 placeholders; most Heathrow airports and flight times require confirmation · prices and seats require live confirmation`;}};
+  return {getLeads(){if(!$('mx-london').checked)return [];const result=[];const hours=Number($('mx-london-gap').value)||4;for(const long of window.tmLondonFlightLeads||[])for(const q of allQuotes()){const f=combine(long,q,hours);if(f)result.push(f);}return result;},status(){return `${(window.tmLondonFlightLeads||[]).length.toLocaleString()} nonstop LAX/SFO/LAS ↔ Heathrow leads · ${allQuotes().length} BA quotes available (${quotes.length} entered here) · captured BA cash charges use $0 placeholders; most Heathrow airports and flight times require confirmation · prices and seats require live confirmation`;}};
  }
  window.tmLondon={init,combine,valid,sumTax,captured};
 })();
+
